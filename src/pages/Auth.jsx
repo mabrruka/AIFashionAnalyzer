@@ -20,8 +20,22 @@ function Auth() {
         const form = e.target;
         const password = form.password.value;
         const confirmPassword = form.confirmPassword?.value;
+        const username = form.username?.value;
 
         setError("");
+
+        // Username validation (signup only)
+        if (!isLogin && username.length < 5) {
+            setError("Username must be at least 5 characters");
+            return;
+        }
+
+        // Password validation (≥8 chars, letters + numbers)
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            setError("Password must be at least 8 characters and include letters and numbers");
+            return;
+        }
 
         if (!isLogin && password !== confirmPassword) {
             setError("Passwords do not match");
@@ -83,6 +97,13 @@ function Auth() {
                                 <input type="text" placeholder="First name" required />
                                 <input type="text" placeholder="Last name" required />
                             </div>
+
+                            <input
+                                type="text"
+                                name="username"
+                                placeholder="Username"
+                                required
+                            />
 
                             <input type="number" placeholder="Age" min="13" required />
                         </>

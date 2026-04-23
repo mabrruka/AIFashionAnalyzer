@@ -16,11 +16,17 @@ function App() {
             <Route path="/login" element={<Auth />} />
             <Route path="/signup" element={<Auth />} />
 
-            {/* FLOW */}
+            {/* ONBOARDING */}
             <Route path="/onboarding" element={<Onboarding />} />
+
+            {/* MAIN APP */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/upload" element={<Upload />} />
+
+            {/* NEW RESULTS PAGE */}
             <Route path="/results" element={<Results />} />
+
+            {/* PROFILE */}
             <Route path="/profile" element={<Profile />} />
 
             {/* fallback */}

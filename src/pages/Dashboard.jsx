@@ -27,12 +27,12 @@ function Dashboard() {
             {/* MAIN */}
             <main className="page">
 
-                {/* HERO TITLE */}
+                {/* HERO */}
                 <section className="hero">
                     <h2>Analyze your style</h2>
                 </section>
 
-                {/* FULL WIDTH PANELS */}
+                {/* PANELS */}
                 <section className="split">
 
                     <div className="panel" onClick={() => navigate("/upload")}>
@@ -47,22 +47,14 @@ function Dashboard() {
 
                 </section>
 
-                {/* IMAGE STRIP */}
+                {/* STATIC IMAGE STRIP */}
                 <section className="strip">
-                    <div className="stripTrack">
-                        <img src="https://i.pinimg.com/736x/21/a4/5c/21a45c1cf787a6cac57ebf2b5ef66703.jpg" />
-                        <img src="https://i.pinimg.com/736x/96/58/61/9658614b5ead46073cbe057aadccdaa3.jpg" />
-                        <img src="https://i.pinimg.com/736x/d9/97/34/d9973436f308e448f5df77f70f6addfe.jpg" />
-                        <img src="https://i.pinimg.com/736x/cf/67/44/cf6744f16597e78868e0cd28090ca4e1.jpg" />
-                        <img src="https://i.pinimg.com/736x/d5/b1/83/d5b18324ccbc3591a6d99fac314d212c.jpg" />
-                        <img src="https://i.pinimg.com/736x/85/f8/35/85f8350e6776a3c401c1a9985150f2dd.jpg" />
-
-                        {/* duplicate for seamless loop */}
-                        <img src="https://i.pinimg.com/736x/21/a4/5c/21a45c1cf787a6cac57ebf2b5ef66703.jpg" />
-                        <img src="https://i.pinimg.com/736x/96/58/61/9658614b5ead46073cbe057aadccdaa3.jpg" />
-                        <img src="https://i.pinimg.com/736x/d9/97/34/d9973436f308e448f5df77f70f6addfe.jpg" />
-                        <img src="https://i.pinimg.com/736x/cf/67/44/cf6744f16597e78868e0cd28090ca4e1.jpg" />
-                    </div>
+                    <img src="https://i.pinimg.com/736x/21/a4/5c/21a45c1cf787a6cac57ebf2b5ef66703.jpg" />
+                    <img src="https://i.pinimg.com/736x/96/58/61/9658614b5ead46073cbe057aadccdaa3.jpg" />
+                    <img src="https://i.pinimg.com/736x/d9/97/34/d9973436f308e448f5df77f70f6addfe.jpg" />
+                    <img src="https://i.pinimg.com/736x/cf/67/44/cf6744f16597e78868e0cd28090ca4e1.jpg" />
+                    <img src="https://i.pinimg.com/736x/d5/b1/83/d5b18324ccbc3591a6d99fac314d212c.jpg" />
+                    <img src="https://i.pinimg.com/736x/85/f8/35/85f8350e6776a3c401c1a9985150f2dd.jpg" />
                 </section>
 
             </main>

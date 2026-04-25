@@ -8,11 +8,6 @@ Course: UYG414 – Special Topics in Software Development
 
 AI Fashion Analyzer is a cloud-ready microservice-based system that analyzes users’ Pinterest fashion boards and generates personalized outfit recommendations. It processes visual and metadata features from fashion images to understand user preferences and suggest outfit combinations or purchasable fashion items.
 
-### Target Users
-- Online fashion shoppers seeking personalized recommendations  
-- Fashion retailers and e-commerce platforms  
-- Fashion enthusiasts using Pinterest for inspiration  
-- Personal styling platforms  
 
 ---
 

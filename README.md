@@ -55,8 +55,29 @@ AI Fashion Analyzer is a cloud-ready, microservice-based system designed to anal
 - **uploads** – Tracks user-uploaded images or Pinterest links  
 - **results** – Contains AI-generated analysis results and scores  
 - **saved_items** – Stores user-saved fashion items  
-- **style_dna** – Maintains long-term user style profile metrics  
+- **style_dna** – Maintains long-term user style profile metrics
+  
 
+---
+## API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|------------|
+| POST | `/signup` | Register a new user |
+| POST | `/login` | Authenticate user |
+
+### Analysis
+| Method | Endpoint | Description |
+|--------|----------|------------|
+| POST | `/analyze` | Analyze fashion input and generate results |
+| GET | `/results` | Retrieve all analysis results |
+
+### Profile
+| Method | Endpoint | Description |
+|--------|----------|------------|
+| GET | `/profile/:id` | Get user profile and analysis history |
+| PUT | `/profile/:id` | Update user profile |
 ---
 
 ## Team Members

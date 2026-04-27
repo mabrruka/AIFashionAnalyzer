@@ -1,20 +1,101 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Profile.css";
 
 function Profile() {
     const navigate = useNavigate();
+
     const [dark, setDark] = useState(false);
     const [tab, setTab] = useState("items");
 
-    const toggleTheme = () => {
-        setDark((p) => !p);
+    const [user, setUser] = useState(null);
+    const [results, setResults] = useState([]);
+
+    const [editing, setEditing] = useState(false);
+    const [profilePic, setProfilePic] = useState(null);
+    const [bio, setBio] = useState("");
+
+    useEffect(() => {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+
+        if (!storedUser) {
+            navigate("/login");
+            return;
+        }
+
+        setUser(storedUser);
+        setBio(storedUser.bio || "");
+        setProfilePic(storedUser.profilePic || null);
+
+        fetch(`http://localhost:3001/profile/${storedUser.id}`)
+            .then((res) => res.json())
+            .then((data) => {
+
+                const mergedUser = {
+                    ...storedUser,
+                    ...data.user,
+                };
+
+                setUser(mergedUser);
+                setResults(data.results);
+
+                setBio(mergedUser.bio || "");
+                setProfilePic(mergedUser.profilePic || null);
+            })
+            .catch((err) => console.log(err));
+    }, []);
+
+    const toggleTheme = () => setDark((p) => !p);
+
+    const logout = () => {
+        localStorage.removeItem("user");
+        navigate("/login");
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onloadend = () => setProfilePic(reader.result);
+        reader.readAsDataURL(file);
+    };
+
+    const removeProfileImage = () => {
+        setProfilePic(null);
+    };
+
+    const saveProfile = async () => {
+        const updatedUser = {
+            ...user,
+            bio,
+            profilePic: profilePic || null,
+        };
+
+        // ✅ SAVE TO BACKEND
+        try {
+            await fetch(`http://localhost:3001/profile/${user.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    bio,
+                    profilePic,
+                }),
+            });
+        } catch (err) {
+            console.log("Profile update failed:", err);
+        }
+
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setEditing(false);
     };
 
     return (
         <div className={dark ? "profile-page dark" : "profile-page"}>
 
-            {/* HEADER */}
             <header>
                 <button onClick={() => navigate("/dashboard")}>
                     ⬅ Dashboard
@@ -22,102 +103,117 @@ function Profile() {
 
                 <h1>Wrapped</h1>
 
-                <button onClick={toggleTheme}>🌓</button>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <button onClick={() => setEditing(true)}>
+                        ✏️ Edit Profile
+                    </button>
+
+                    <button onClick={toggleTheme}>🌓</button>
+                    <button onClick={logout}>🚪</button>
+                </div>
             </header>
 
             <main>
 
-                {/* PROFILE */}
                 <section className="profile">
-                    <img src="https://i.pinimg.com/736x/1d/ec/e2/1dece2c8357bdd7cee3b15036344faf5.jpg" />
-                    <h2>Your Style Portfolio</h2>
+
+                    <img
+                        src={
+                            profilePic ||
+                            "https://i.pinimg.com/736x/1d/ec/e2/1dece2c8357bdd7cee3b15036344faf5.jpg"
+                        }
+                        alt="profile"
+                    />
+
+                    <h2>{user ? user.username : "Loading..."}</h2>
+
+                    <p style={{ fontStyle: "italic", color: "gray" }}>
+                        {bio}
+                    </p>
+
+                    <p>{user ? user.email : ""}</p>
+
+                    {editing && (
+                        <div className="edit-profile">
+
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                onClick={(e) => (e.target.value = null)}
+                            />
+
+                            <button
+                                type="button"
+                                onClick={removeProfileImage}
+                                style={{ marginTop: "5px" }}
+                            >
+                                Remove Profile Image
+                            </button>
+
+                            <textarea
+                                placeholder="Write your bio..."
+                                value={bio}
+                                onChange={(e) => setBio(e.target.value)}
+                            />
+
+                            <button onClick={saveProfile}>Save</button>
+                        </div>
+                    )}
                 </section>
 
-                {/* STYLE DNA */}
                 <section>
-                    <h3>Your Style DNA</h3>
+                    <h3>Your Style Analysis</h3>
 
-                    <div className="dna">
-
-                        <div className="trait">
-                            <span>Minimalism</span><span>92%</span>
-                            <div className="bar">
-                                <div style={{ width: "92%" }}></div>
+                    {results.length === 0 ? (
+                        <p>No analyses yet.</p>
+                    ) : (
+                        results.slice(0, 4).map((r, i) => (
+                            <div key={i} className="trait">
+                                <span>{r.aesthetic}</span>
+                                <span>{r.score}%</span>
+                                <div className="bar">
+                                    <div style={{ width: `${r.score}%` }}></div>
+                                </div>
                             </div>
-                        </div>
-
-                        <div className="trait">
-                            <span>Classic</span><span>85%</span>
-                            <div className="bar">
-                                <div style={{ width: "85%" }}></div>
-                            </div>
-                        </div>
-
-                        <div className="trait">
-                            <span>Modern</span><span>78%</span>
-                            <div className="bar">
-                                <div style={{ width: "78%" }}></div>
-                            </div>
-                        </div>
-
-                        <div className="trait">
-                            <span>Sustainable</span><span>70%</span>
-                            <div className="bar">
-                                <div style={{ width: "70%" }}></div>
-                            </div>
-                        </div>
-
-                    </div>
+                        ))
+                    )}
                 </section>
 
-                {/* TABS */}
                 <section className="tabs">
                     <button
                         className={tab === "items" ? "active" : ""}
                         onClick={() => setTab("items")}
                     >
-                        Saved items
+                        Saved results
                     </button>
 
                     <button
                         className={tab === "inspo" ? "active" : ""}
                         onClick={() => setTab("inspo")}
                     >
-                        Saved inspiration
+                        Inspiration
                     </button>
                 </section>
 
-                {/* ITEMS */}
                 {tab === "items" && (
                     <section className="grid">
-
-                        <div className="card">
-                            <img src="https://i.pinimg.com/1200x/ff/9f/63/ff9f63f1ffd75f5a22392a29034749c2.jpg" />
-                            <p>Wool coat - Toteme</p>
-                        </div>
-
-                        <div className="card">
-                            <img src="https://i.pinimg.com/1200x/8f/59/1f/8f591fa7d032a5af5eff587aa89601bd.jpg" />
-                            <p>Leather bag - The Row</p>
-                        </div>
-
-                        <div className="card">
-                            <img src="https://i.pinimg.com/1200x/bd/6c/f9/bd6cf9e39bb3ea86086bb1f89c789ee6.jpg" />
-                            <p>White shirt - COS</p>
-                        </div>
-
-                        <div className="card">
-                            <img src="https://i.pinimg.com/736x/69/02/d2/6902d2a607a4a9ceaead113af561f13b.jpg" />
-                            <p>Trench coat - Arket</p>
-                        </div>
-
+                        {results.length === 0 ? (
+                            <p>No saved results yet.</p>
+                        ) : (
+                            results.map((item) => (
+                                <div className="card" key={item.id}>
+                                    <p><b>{item.aesthetic}</b></p>
+                                    <p>{item.description}</p>
+                                    <p>{item.score}% match</p>
+                                </div>
+                            ))
+                        )}
                     </section>
                 )}
 
-                {/* INSPIRATION */}
                 {tab === "inspo" && (
                     <section className="boards">
-
                         <div className="board">
                             <img src="https://i.pinimg.com/736x/54/2c/c0/542cc0d1e6cd940c3f233f99763297de.jpg" />
                             <h4>Everyday</h4>
@@ -129,7 +225,6 @@ function Profile() {
                             <h4>Bags</h4>
                             <p>2 items</p>
                         </div>
-
                     </section>
                 )}
 

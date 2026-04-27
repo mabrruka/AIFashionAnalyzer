@@ -1,9 +1,11 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import "./Results.css";
 
 function Results() {
     const navigate = useNavigate();
+    const location = useLocation();
+
     const [dark, setDark] = useState(false);
 
     const toggleTheme = () => {
@@ -11,10 +13,26 @@ function Results() {
         setDark(!dark);
     };
 
+    // ✅ Get backend data safely
+    const data = location.state || {};
+
+    // ✅ Fallbacks (prevents crashes)
+    const aesthetic = data.aesthetic || "No result";
+    const score = data.score || 0;
+    const description = data.description || "Upload images to analyze your style.";
+
+    // OPTIONAL: dynamic suggestions (fake for now)
+    const elements = data.elements || [
+        "Tailored silhouettes",
+        "Neutral palette",
+        "Minimal accessories",
+        "Clean lines"
+    ];
+
     return (
         <div className="page">
 
-            {/* HEADER (UNCHANGED LOOK) */}
+            {/* HEADER */}
             <header>
                 <div className="headerInner">
 
@@ -36,23 +54,31 @@ function Results() {
             {/* CONTENT */}
             <div className="flow">
 
-                {/* HERO (UNCHANGED STYLE) */}
+                {/* HERO */}
                 <section className="hero">
                     <p>Your aesthetic is</p>
 
-                    <h1 className="title">Minimalist</h1>
+                    <h1 className="title">{aesthetic}</h1>
 
                     <div className="circle-wrap">
                         <svg className="circle" viewBox="0 0 120 120">
                             <circle className="bg" cx="60" cy="60" r="52" />
-                            <circle className="progress" cx="60" cy="60" r="52" />
+                            <circle
+                                className="progress"
+                                cx="60"
+                                cy="60"
+                                r="52"
+                                style={{
+                                    strokeDasharray: 327,
+                                    strokeDashoffset: 327 - (327 * score) / 100
+                                }}
+                            />
                         </svg>
-                        <div className="circle-text">92</div>
+
+                        <div className="circle-text">{score}</div>
                     </div>
 
-                    <p className="desc">
-                        Clean lines, neutral tones, and simple style.
-                    </p>
+                    <p className="desc">{description}</p>
                 </section>
 
                 {/* KEY ELEMENTS */}
@@ -60,12 +86,9 @@ function Results() {
                     <h2 className="section-title">Key Elements</h2>
 
                     <div className="pill-scroll">
-                        <span className="pill">Tailored silhouettes</span>
-                        <span className="pill">Neutral palette</span>
-                        <span className="pill">Minimal accessories</span>
-                        <span className="pill">Clean lines</span>
-                        <span className="pill">Monochrome looks</span>
-                        <span className="pill">Structured pieces</span>
+                        {elements.map((el, i) => (
+                            <span key={i} className="pill">{el}</span>
+                        ))}
                     </div>
                 </section>
 

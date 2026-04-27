@@ -5,50 +5,128 @@ import "./Auth.css";
 function Auth() {
     const [isLogin, setIsLogin] = useState(true);
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const [darkMode, setDarkMode] = useState(false);
 
     const navigate = useNavigate();
 
-    // Apply dark mode to whole app
     useEffect(() => {
         document.body.classList.toggle("dark-mode", darkMode);
     }, [darkMode]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
+        setLoading(true);
 
         const form = e.target;
+
+        const email = form.email.value;
         const password = form.password.value;
         const confirmPassword = form.confirmPassword?.value;
         const username = form.username?.value;
+        const age = form.age?.value; // ✅ FIX ADDED
 
-        setError("");
+        /* =========================
+           CLIENT VALIDATION (SIGNUP)
+        ========================= */
+        if (!isLogin) {
+            if (!username || username.length < 5) {
+                setError("Username must be at least 5 characters");
+                setLoading(false);
+                return;
+            }
 
-        // Username validation (signup only)
-        if (!isLogin && username.length < 5) {
-            setError("Username must be at least 5 characters");
-            return;
+            if (!age || age < 13) {
+                setError("You must be at least 13 years old");
+                setLoading(false);
+                return;
+            }
+
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                setError("Password must be 8+ chars with letters + numbers");
+                setLoading(false);
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                setError("Passwords do not match");
+                setLoading(false);
+                return;
+            }
         }
 
-        // Password validation (≥8 chars, letters + numbers)
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        if (!passwordRegex.test(password)) {
-            setError("Password must be at least 8 characters and include letters and numbers");
-            return;
+        try {
+            /* =========================
+               LOGIN
+            ========================= */
+            if (isLogin) {
+                const res = await fetch("http://localhost:3001/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    setError(data.error || "Login failed");
+                    setLoading(false);
+                    return;
+                }
+
+                localStorage.setItem("user", JSON.stringify(data.user));
+                navigate("/dashboard");
+            }
+
+            /* =========================
+               SIGNUP (FIXED)
+            ========================= */
+            else {
+                const res = await fetch("http://localhost:3001/signup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password,
+                        age: Number(age) // ✅ FIX IMPORTANT
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    setError(data.error || "Signup failed");
+                    setLoading(false);
+                    return;
+                }
+
+                // auto login
+                const loginRes = await fetch("http://localhost:3001/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const loginData = await loginRes.json();
+
+                localStorage.setItem("user", JSON.stringify(loginData.user));
+
+                navigate("/onboarding");
+            }
+
+        } catch (err) {
+            setError("Server not responding");
         }
 
-        if (!isLogin && password !== confirmPassword) {
-            setError("Passwords do not match");
-            return;
-        }
-
-        navigate("/onboarding");
+        setLoading(false);
     };
 
     return (
         <div className="container">
 
-            {/* LEFT IMAGE */}
             <div className="left">
                 <img
                     src="https://i.pinimg.com/736x/ed/36/8e/ed368e2c4c83b08cff60dbf48a4dfc1d.jpg"
@@ -56,20 +134,19 @@ function Auth() {
                 />
             </div>
 
-            {/* RIGHT SIDE */}
             <div className="right">
 
-                {/* TOP BAR */}
                 <div className="top-bar">
-                    <button onClick={() => document.body.classList.toggle("dark")}>
+                    <button onClick={() => setDarkMode(!darkMode)}>
                         🌓
                     </button>
                 </div>
 
                 <h1 className="logo">Wrapped</h1>
-                <p className="subtitle">Discover your unique style identity</p>
+                <p className="subtitle">
+                    Discover your unique style identity
+                </p>
 
-                {/* TABS */}
                 <div className="tabs">
                     <button
                         type="button"
@@ -88,7 +165,6 @@ function Auth() {
                     </button>
                 </div>
 
-                {/* FORM */}
                 <form onSubmit={handleSubmit}>
 
                     {!isLogin && (
@@ -105,11 +181,23 @@ function Auth() {
                                 required
                             />
 
-                            <input type="number" placeholder="Age" min="13" required />
+                            {/* ✅ FIX: added name="age" */}
+                            <input
+                                type="number"
+                                name="age"
+                                placeholder="Age"
+                                min="13"
+                                required
+                            />
                         </>
                     )}
 
-                    <input type="email" placeholder="Email" required />
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                        required
+                    />
 
                     <input
                         type="password"
@@ -129,8 +217,8 @@ function Auth() {
 
                     {error && <p className="error">{error}</p>}
 
-                    <button type="submit" className="submit-btn">
-                        Continue
+                    <button type="submit" className="submit-btn" disabled={loading}>
+                        {loading ? "Loading..." : "Continue"}
                     </button>
                 </form>
 

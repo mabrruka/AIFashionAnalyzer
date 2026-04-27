@@ -27,10 +27,28 @@ function Upload() {
         (mode === "images" && images.length > 0) ||
         (mode === "pinterest" && url.trim().length > 0);
 
-    const analyze = () => {
-        navigate("/results", {
-            state: { mode, images, url, myStyle, inspo }
-        });
+    const analyze = async () => {
+        try {
+            const response = await fetch("http://localhost:3001/analyze", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    images,
+                    url,
+                    myStyle,
+                    inspo
+                })
+            });
+
+            const data = await response.json();
+
+            navigate("/results", { state: data });
+
+        } catch (error) {
+            console.error("Error:", error);
+        }
     };
 
     return (

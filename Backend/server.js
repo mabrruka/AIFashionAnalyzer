@@ -14,5 +14,5 @@ app.use("/", require("./routes/profileRoutes"));
 app.use("/", require("./routes/analysisRoutes"));
 
 app.listen(3001, () => {
-    console.log("🚀 Server running on http://localhost:3001");
+    console.log(" Server running on http://localhost:3001");
 });

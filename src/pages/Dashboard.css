@@ -11,30 +11,35 @@ body {
     color: white;
 }
 
-/* HEADER */
 header {
     width: 100%;
     border-bottom: 1px solid #ddd;
 }
 
+/* THIS is the key fix */
 .headerInner {
     display: flex;
     align-items: center;
+
     justify-content: space-between;
+
+    /* full-width positioning instead of centered block feel */
     width: 100%;
     padding: 14px 40px;
     box-sizing: border-box;
 }
 
+/* LEFT */
 .logo {
     font-size: 34px;
     font-weight: bold;
 }
 
+/* RIGHT (forced to far edge cleanly) */
 .icons {
     display: flex;
     gap: 10px;
-    margin-left: auto;
+    margin-left: auto; /* 🔥 forces it to far right */
 }
 
 .icons button {
@@ -44,14 +49,13 @@ header {
     background: #eee;
     border-radius: 8px;
 }
-
-/* MAIN */
+/* MAIN PAGE LAYOUT */
 .page {
     width: 100%;
     padding: 10px 40px;
 }
 
-/* HERO */
+/* HERO TITLE (tight spacing) */
 .hero {
     margin-top: 10px;
 }
@@ -61,13 +65,14 @@ header {
     margin-bottom: 20px;
 }
 
-/* PANELS */
+/* TWO FULL WIDTH PANELS */
 .split {
     display: flex;
     gap: 16px;
     width: 100%;
 }
 
+/* BIG CLICKABLE PANELS */
 .panel {
     flex: 1;
     min-height: 220px;
@@ -99,24 +104,25 @@ header {
     max-width: 80%;
 }
 
-/* STATIC IMAGE STRIP */
+/* IMAGE STRIP */
 .strip {
     margin-top: 40px;
     display: flex;
     gap: 12px;
-    overflow-x: auto; /* scroll if needed */
+    overflow-x: auto;
     padding-bottom: 10px;
 }
 
+/* IMAGE CARDS */
 .strip img {
-    width: 180px;
-    height: 220px;
+    width: 160px;
+    height: 210px;
     object-fit: cover;
     border-radius: 12px;
     flex-shrink: 0;
 }
 
-/* DARK MODE OVERRIDES */
+/* DARK MODE */
 .dark .panel {
     background: #222;
 }
@@ -124,4 +130,33 @@ header {
 .dark .icons button {
     background: #333;
     color: white;
+}
+.strip {
+    overflow: hidden;
+    width: 100%;
+    padding: 20px 0;
+}
+
+.stripTrack {
+    display: flex;
+    width: max-content;
+    animation: scrollLeft 20s linear infinite;
+}
+
+.stripTrack img {
+    width: 180px;
+    height: 220px;
+    object-fit: cover;
+    margin-right: 12px;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+@keyframes scrollLeft {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
 }

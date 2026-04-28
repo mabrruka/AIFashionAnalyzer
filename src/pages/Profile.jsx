@@ -105,7 +105,7 @@ function Profile() {
 
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <button onClick={() => setEditing(true)}>
-                        ✏Edit Profile
+                        Edit Profile
                     </button>
 
                     <button onClick={toggleTheme}>🌓</button>

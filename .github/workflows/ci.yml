@@ -1,1 +1,39 @@
 
+name: AIFashionAnalyzer CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 3. Install backend dependencies
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
+
+      # 4. Build backend Docker image
+      - name: Build backend Docker image
+        run: docker build -t aifashion-backend ./backend
+
+      # 5. Install frontend dependencies
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      # 6. Build frontend Docker image
+      - name: Build frontend Docker image
+        run: docker build -t aifashion-frontend ./frontend

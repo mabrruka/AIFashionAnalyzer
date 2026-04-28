@@ -1,10 +1,11 @@
+version: "3.8"
+
 services:
   mysql:
     image: mysql:8
-    container_name: fashion-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: Mabruka123
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: fashion_analyzer
     ports:
       - "3307:3306"
@@ -14,27 +15,23 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
 
   backend:
     build: ./Backend
-    container_name: fashion-backend
-    restart: always
     ports:
-      - "3002:3001"
-    environment:
-      DB_HOST: mysql
-      DB_USER: root
-      DB_PASSWORD: Mabruka123
-      DB_NAME: fashion_analyzer
+      - "3003:3001"
     depends_on:
       mysql:
         condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: fashion_analyzer
 
   frontend:
     build: ./Frontend
-    container_name: fashion-frontend
-    restart: always
     ports:
       - "5173:5173"
     depends_on:

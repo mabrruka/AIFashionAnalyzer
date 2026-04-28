@@ -1,23 +1,27 @@
-const mysql = require("mysql2");
+const mysql = require("mysql2/promise");
 
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || "mysql",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "root",
+    database: process.env.DB_NAME || "fashion_analyzer",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
-function connect() {
-    db.connect((err) => {
-        if (err) {
-            console.log("❌ DB not ready:", err.message);
-            setTimeout(connect, 3000);
-        } else {
-            console.log("✅ Connected to MySQL");
-        }
-    });
+// test connection once on startup
+async function testConnection() {
+    try {
+        const conn = await pool.getConnection();
+        console.log("✅ Connected to MySQL");
+        conn.release();
+    } catch (err) {
+        console.log("❌ MySQL not ready:", err.message);
+        setTimeout(testConnection, 3000);
+    }
 }
 
-connect();
+testConnection();
 
-module.exports = db;
+module.exports = pool;

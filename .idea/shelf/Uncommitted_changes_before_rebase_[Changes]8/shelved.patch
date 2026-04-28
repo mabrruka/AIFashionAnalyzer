@@ -1,0 +1,455 @@
+Index: Frontend/src/pages/Dashboard.css
+===================================================================
+diff --git a/Frontend/src/pages/Dashboard.css b/Frontend/src/pages/Dashboard.css
+deleted file mode 100644
+--- a/Frontend/src/pages/Dashboard.css	(revision 4487528f2f71e5d554b369efb1b0341de02c0275)
++++ /dev/null	(revision 4487528f2f71e5d554b369efb1b0341de02c0275)
+@@ -1,162 +0,0 @@
+-body {
+-    margin: 0;
+-    font-family: Arial, sans-serif;
+-    background: white;
+-    color: black;
+-}
+-
+-/* DARK MODE */
+-.dark {
+-    background: #111;
+-    color: white;
+-}
+-
+-header {
+-    width: 100%;
+-    border-bottom: 1px solid #ddd;
+-}
+-
+-/* THIS is the key fix */
+-.headerInner {
+-    display: flex;
+-    align-items: center;
+-
+-    justify-content: space-between;
+-
+-    /* full-width positioning instead of centered block feel */
+-    width: 100%;
+-    padding: 14px 40px;
+-    box-sizing: border-box;
+-}
+-
+-/* LEFT */
+-.logo {
+-    font-size: 34px;
+-    font-weight: bold;
+-}
+-
+-/* RIGHT (forced to far edge cleanly) */
+-.icons {
+-    display: flex;
+-    gap: 10px;
+-    margin-left: auto; /* 🔥 forces it to far right */
+-}
+-
+-.icons button {
+-    padding: 8px;
+-    border: none;
+-    cursor: pointer;
+-    background: #eee;
+-    border-radius: 8px;
+-}
+-/* MAIN PAGE LAYOUT */
+-.page {
+-    width: 100%;
+-    padding: 10px 40px;
+-}
+-
+-/* HERO TITLE (tight spacing) */
+-.hero {
+-    margin-top: 10px;
+-}
+-
+-.hero h2 {
+-    font-size: 28px;
+-    margin-bottom: 20px;
+-}
+-
+-/* TWO FULL WIDTH PANELS */
+-.split {
+-    display: flex;
+-    gap: 16px;
+-    width: 100%;
+-}
+-
+-/* BIG CLICKABLE PANELS */
+-.panel {
+-    flex: 1;
+-    min-height: 220px;
+-    background: #f2f2f2;
+-    border-radius: 18px;
+-    padding: 40px;
+-    cursor: pointer;
+-
+-    display: flex;
+-    flex-direction: column;
+-    justify-content: center;
+-
+-    transition: 0.2s ease;
+-}
+-
+-.panel:hover {
+-    transform: translateY(-3px);
+-    background: #e9e9e9;
+-}
+-
+-.panel h3 {
+-    font-size: 22px;
+-    margin-bottom: 8px;
+-}
+-
+-.panel p {
+-    font-size: 14px;
+-    color: #666;
+-    max-width: 80%;
+-}
+-
+-/* IMAGE STRIP */
+-.strip {
+-    margin-top: 40px;
+-    display: flex;
+-    gap: 12px;
+-    overflow-x: auto;
+-    padding-bottom: 10px;
+-}
+-
+-/* IMAGE CARDS */
+-.strip img {
+-    width: 160px;
+-    height: 210px;
+-    object-fit: cover;
+-    border-radius: 12px;
+-    flex-shrink: 0;
+-}
+-
+-/* DARK MODE */
+-.dark .panel {
+-    background: #222;
+-}
+-
+-.dark .icons button {
+-    background: #333;
+-    color: white;
+-}
+-.strip {
+-    overflow: hidden;
+-    width: 100%;
+-    padding: 20px 0;
+-}
+-
+-.stripTrack {
+-    display: flex;
+-    width: max-content;
+-    animation: scrollLeft 20s linear infinite;
+-}
+-
+-.stripTrack img {
+-    width: 180px;
+-    height: 220px;
+-    object-fit: cover;
+-    margin-right: 12px;
+-    border-radius: 12px;
+-    flex-shrink: 0;
+-}
+-
+-@keyframes scrollLeft {
+-    0% {
+-        transform: translateX(0);
+-    }
+-    100% {
+-        transform: translateX(-50%);
+-    }
+-}
+\ No newline at end of file
+Index: Frontend/src/pages/Profile.jsx
+===================================================================
+diff --git a/Frontend/src/pages/Profile.jsx b/Frontend/src/pages/Profile.jsx
+deleted file mode 100644
+--- a/Frontend/src/pages/Profile.jsx	(revision 4487528f2f71e5d554b369efb1b0341de02c0275)
++++ /dev/null	(revision 4487528f2f71e5d554b369efb1b0341de02c0275)
+@@ -1,236 +0,0 @@
+-import { useState, useEffect } from "react";
+-import { useNavigate } from "react-router-dom";
+-import "./Profile.css";
+-
+-function Profile() {
+-    const navigate = useNavigate();
+-
+-    const [dark, setDark] = useState(false);
+-    const [tab, setTab] = useState("items");
+-
+-    const [user, setUser] = useState(null);
+-    const [results, setResults] = useState([]);
+-
+-    const [editing, setEditing] = useState(false);
+-    const [profilePic, setProfilePic] = useState(null);
+-    const [bio, setBio] = useState("");
+-
+-    useEffect(() => {
+-        const storedUser = JSON.parse(localStorage.getItem("user"));
+-
+-        if (!storedUser) {
+-            navigate("/login");
+-            return;
+-        }
+-
+-        setUser(storedUser);
+-        setBio(storedUser.bio || "");
+-        setProfilePic(storedUser.profilePic || null);
+-
+-        fetch(`http://localhost:3001/profile/${storedUser.id}`)
+-            .then((res) => res.json())
+-            .then((data) => {
+-
+-                const mergedUser = {
+-                    ...storedUser,
+-                    ...data.user,
+-                };
+-
+-                setUser(mergedUser);
+-                setResults(data.results);
+-
+-                setBio(mergedUser.bio || "");
+-                setProfilePic(mergedUser.profilePic || null);
+-            })
+-            .catch((err) => console.log(err));
+-    }, []);
+-
+-    const toggleTheme = () => setDark((p) => !p);
+-
+-    const logout = () => {
+-        localStorage.removeItem("user");
+-        navigate("/login");
+-    };
+-
+-    const handleImageChange = (e) => {
+-        const file = e.target.files[0];
+-        if (!file) return;
+-
+-        const reader = new FileReader();
+-        reader.onloadend = () => setProfilePic(reader.result);
+-        reader.readAsDataURL(file);
+-    };
+-
+-    const removeProfileImage = () => {
+-        setProfilePic(null);
+-    };
+-
+-    const saveProfile = async () => {
+-        const updatedUser = {
+-            ...user,
+-            bio,
+-            profilePic: profilePic || null,
+-        };
+-
+-        // ✅ SAVE TO BACKEND
+-        try {
+-            await fetch(`http://localhost:3001/profile/${user.id}`, {
+-                method: "PUT",
+-                headers: {
+-                    "Content-Type": "application/json",
+-                },
+-                body: JSON.stringify({
+-                    bio,
+-                    profilePic,
+-                }),
+-            });
+-        } catch (err) {
+-            console.log("Profile update failed:", err);
+-        }
+-
+-        setUser(updatedUser);
+-        localStorage.setItem("user", JSON.stringify(updatedUser));
+-        setEditing(false);
+-    };
+-
+-    return (
+-        <div className={dark ? "profile-page dark" : "profile-page"}>
+-
+-            <header>
+-                <button onClick={() => navigate("/dashboard")}>
+-                    ⬅ Dashboard
+-                </button>
+-
+-                <h1>Wrapped</h1>
+-
+-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+-                    <button onClick={() => setEditing(true)}>
+-                        ✏️ Edit Profile
+-                    </button>
+-
+-                    <button onClick={toggleTheme}>🌓</button>
+-                    <button onClick={logout}>🚪</button>
+-                </div>
+-            </header>
+-
+-            <main>
+-
+-                <section className="profile">
+-
+-                    <img
+-                        src={
+-                            profilePic ||
+-                            "https://i.pinimg.com/736x/1d/ec/e2/1dece2c8357bdd7cee3b15036344faf5.jpg"
+-                        }
+-                        alt="profile"
+-                    />
+-
+-                    <h2>{user ? user.username : "Loading..."}</h2>
+-
+-                    <p style={{ fontStyle: "italic", color: "gray" }}>
+-                        {bio}
+-                    </p>
+-
+-                    <p>{user ? user.email : ""}</p>
+-
+-                    {editing && (
+-                        <div className="edit-profile">
+-
+-                            <input
+-                                type="file"
+-                                accept="image/*"
+-                                onChange={handleImageChange}
+-                                onClick={(e) => (e.target.value = null)}
+-                            />
+-
+-                            <button
+-                                type="button"
+-                                onClick={removeProfileImage}
+-                                style={{ marginTop: "5px" }}
+-                            >
+-                                Remove Profile Image
+-                            </button>
+-
+-                            <textarea
+-                                placeholder="Write your bio..."
+-                                value={bio}
+-                                onChange={(e) => setBio(e.target.value)}
+-                            />
+-
+-                            <button onClick={saveProfile}>Save</button>
+-                        </div>
+-                    )}
+-                </section>
+-
+-                <section>
+-                    <h3>Your Style Analysis</h3>
+-
+-                    {results.length === 0 ? (
+-                        <p>No analyses yet.</p>
+-                    ) : (
+-                        results.slice(0, 4).map((r, i) => (
+-                            <div key={i} className="trait">
+-                                <span>{r.aesthetic}</span>
+-                                <span>{r.score}%</span>
+-                                <div className="bar">
+-                                    <div style={{ width: `${r.score}%` }}></div>
+-                                </div>
+-                            </div>
+-                        ))
+-                    )}
+-                </section>
+-
+-                <section className="tabs">
+-                    <button
+-                        className={tab === "items" ? "active" : ""}
+-                        onClick={() => setTab("items")}
+-                    >
+-                        Saved results
+-                    </button>
+-
+-                    <button
+-                        className={tab === "inspo" ? "active" : ""}
+-                        onClick={() => setTab("inspo")}
+-                    >
+-                        Inspiration
+-                    </button>
+-                </section>
+-
+-                {tab === "items" && (
+-                    <section className="grid">
+-                        {results.length === 0 ? (
+-                            <p>No saved results yet.</p>
+-                        ) : (
+-                            results.map((item) => (
+-                                <div className="card" key={item.id}>
+-                                    <p><b>{item.aesthetic}</b></p>
+-                                    <p>{item.description}</p>
+-                                    <p>{item.score}% match</p>
+-                                </div>
+-                            ))
+-                        )}
+-                    </section>
+-                )}
+-
+-                {tab === "inspo" && (
+-                    <section className="boards">
+-                        <div className="board">
+-                            <img src="https://i.pinimg.com/736x/54/2c/c0/542cc0d1e6cd940c3f233f99763297de.jpg" />
+-                            <h4>Everyday</h4>
+-                            <p>4 items</p>
+-                        </div>
+-
+-                        <div className="board">
+-                            <img src="https://i.pinimg.com/736x/60/57/c2/6057c2caa4b0190a9e67ff745304bfd3.jpg" />
+-                            <h4>Bags</h4>
+-                            <p>2 items</p>
+-                        </div>
+-                    </section>
+-                )}
+-
+-            </main>
+-        </div>
+-    );
+-}
+-
+-export default Profile;
+\ No newline at end of file
+Index: Frontend/src/App.jsx
+===================================================================
+diff --git a/Frontend/src/App.jsx b/Frontend/src/App.jsx
+deleted file mode 100644
+--- a/Frontend/src/App.jsx	(revision 4487528f2f71e5d554b369efb1b0341de02c0275)
++++ /dev/null	(revision 4487528f2f71e5d554b369efb1b0341de02c0275)
+@@ -1,33 +0,0 @@
+-import { Routes, Route, Navigate } from "react-router-dom";
+-
+-import Auth from "./pages/Auth";
+-import Onboarding from "./pages/Onboarding";
+-import Dashboard from "./pages/Dashboard";
+-import Upload from "./pages/Upload";
+-import Results from "./pages/Results";
+-import Profile from "./pages/Profile";
+-
+-function App() {
+-    return (
+-        <Routes>
+-
+-            {/* AUTH */}
+-            <Route path="/" element={<Auth />} />
+-            <Route path="/login" element={<Auth />} />
+-            <Route path="/signup" element={<Auth />} />
+-
+-            {/* FLOW */}
+-            <Route path="/onboarding" element={<Onboarding />} />
+-            <Route path="/dashboard" element={<Dashboard />} />
+-            <Route path="/upload" element={<Upload />} />
+-            <Route path="/results" element={<Results />} />
+-            <Route path="/profile" element={<Profile />} />
+-
+-            {/* fallback */}
+-            <Route path="*" element={<Navigate to="/" />} />
+-
+-        </Routes>
+-    );
+-}
+-
+-export default App;
+\ No newline at end of file

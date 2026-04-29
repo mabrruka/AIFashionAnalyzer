@@ -1,39 +1,62 @@
-
-name: AIFashionAnalyzer CI
+name: AIFashionAnalyzer CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # 1. Checkout (IMPORTANT: disables submodules to prevent your error)
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: false
 
-      # 2. Setup Node
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
-      # 3. Install backend dependencies
+      # =========================
+      # BACKEND
+      # =========================
+
       - name: Install backend dependencies
-        working-directory: backend
-        run: npm install
+        working-directory: ./backend
+        run: npm ci
 
-      # 4. Build backend Docker image
+      - name: Run backend tests (if exists)
+        working-directory: ./backend
+        run: npm test --if-present
+
       - name: Build backend Docker image
-        run: docker build -t aifashion-backend ./backend
+        run: docker build -t aifashion-backend:latest ./backend
 
-      # 5. Install frontend dependencies
+      # =========================
+      # FRONTEND
+      # =========================
+
       - name: Install frontend dependencies
-        working-directory: Frontend
-        run: npm install
+        working-directory: ./frontend
+        run: npm ci
 
-      # 6. Build frontend Docker image
+      - name: Run frontend tests (if exists)
+        working-directory: ./frontend
+        run: npm test --if-present
+
       - name: Build frontend Docker image
-        run: docker build -t aifashion-frontend ./frontend
+        run: docker build -t aifashion-frontend:latest ./frontend
+
+      # =========================
+      # OPTIONAL: Verify Docker images
+      # =========================
+
+      - name: List Docker images
+        run: docker images

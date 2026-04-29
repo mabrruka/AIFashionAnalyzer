@@ -31,7 +31,7 @@ jobs:
 
       # 5. Install frontend dependencies
       - name: Install frontend dependencies
-        working-directory: frontend
+        working-directory: Frontend
         run: npm install
 
       # 6. Build frontend Docker image

@@ -10,11 +10,11 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-// health check (IMPORTANT for debugging)
+// health check 
 app.get("/", (req, res) => {
     res.json({
         status: "OK",
-        message: "AIFashionAnalyzer API is running 🚀"
+        message: "AIFashionAnalyzer API is running "
     });
 });
 

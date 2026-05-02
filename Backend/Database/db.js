@@ -1,4 +1,5 @@
-const mysql = require("mysql2/promise");
+
+const mysql = require("mysql2");
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST || "mysql",
@@ -11,13 +12,19 @@ const pool = mysql.createPool({
 });
 
 // test connection once on startup
-async function testConnection() {
+ async function testConnection() {
     try {
         const conn = await pool.getConnection();
+
         console.log("✅ Connected to MySQL");
-        conn.release();
+
+        if (conn) {
+            conn.release();
+        }
+
     } catch (err) {
         console.log("❌ MySQL not ready:", err.message);
+
         setTimeout(testConnection, 3000);
     }
 }

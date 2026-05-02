@@ -14,7 +14,7 @@ app.use(express.json({ limit: "10mb" }));
 app.get("/", (req, res) => {
     res.json({
         status: "OK",
-        message: "AIFashionAnalyzer API is running "
+        message: "AIFashionAnalyzer API is running- backend is working "
     });
 });
 

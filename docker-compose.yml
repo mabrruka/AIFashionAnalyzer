@@ -1,8 +1,6 @@
 version: "3.8"
 
 services:
-  environment:
-    - GOOGLE_AI_API_KEY=${AIzaSyCqtqzcal8v8w18c0PLpdxq6CLgYhvGzoc}
   mysql:
     image: mysql:8
     restart: always
@@ -31,6 +29,8 @@ services:
       DB_USER: root
       DB_PASSWORD: root
       DB_NAME: fashion_analyzer
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      PORT: ${PORT}
 
   frontend:
     build: ./Frontend
@@ -38,7 +38,6 @@ services:
       - "5173:5173"
     depends_on:
       - backend
-
 
 volumes:
   mysql_data:

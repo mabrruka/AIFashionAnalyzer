@@ -1,13 +1,11 @@
 const express = require("express");
 const db = require("../Database/db");
-const fetch = (...args) =>
-    import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const router = express.Router();
 
 router.post("/analyze", async (req, res) => {
     try {
-        const { url, myStyle, inspo } = req.body;
+        const { images, url, myStyle, inspo } = req.body;
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
@@ -23,11 +21,26 @@ router.post("/analyze", async (req, res) => {
                     {
                         role: "system",
                         content: `
-You are a fashion AI stylist.
+You are a fashion stylist AI.
+
+You MUST infer a fashion aesthetic even with limited data.
+
+DO NOT output "Unknown" unless absolutely impossible.
+
+Use this logic:
+- If images > 0 → infer likely aesthetic from fashion patterns
+- If only URL → infer from context
+- If nothing → still guess a modern aesthetic category
+
+INPUT:
+- Images count: ${images?.length || 0}
+- Pinterest URL: ${url || "none"}
+- My style: ${myStyle}
+- Inspiration: ${inspo}
 
 Return ONLY valid JSON:
 {
-  "aesthetic": string,
+  "aesthetic": one of ["Minimalist Streetwear", "Clean Girl", "Y2K", "Dark Academia", "Techwear", "Old Money", "Athleisure"],
   "score": number,
   "description": string,
   "elements": string[],
@@ -39,11 +52,13 @@ Return ONLY valid JSON:
                         role: "user",
                         content: `
 Analyze this user:
-- my style: ${myStyle}
-- inspiration: ${inspo}
-- pinterest url: ${url || "none"}
 
-Give fashion analysis.
+- Images uploaded: ${images?.length || 0}
+- Pinterest URL: ${url || "none"}
+- My style: ${myStyle}
+- Inspiration: ${inspo}
+
+Give a detailed fashion analysis.
 `
                     }
                 ]
@@ -52,19 +67,29 @@ Give fashion analysis.
 
         const data = await response.json();
 
-        const text = data.choices?.[0]?.message?.content;
+        console.log("RAW AI RESPONSE:", data);
 
-        let parsed;
+        const text = data?.choices?.[0]?.message?.content;
+
+        console.log("AI TEXT:", text);
+
+        // ✅ SAFE DEFAULT (prevents undefined crash)
+        let parsed = {
+            aesthetic: "Unknown",
+            score: 0,
+            description: "No valid AI response",
+            elements: [],
+            recommendations: []
+        };
 
         try {
             parsed = JSON.parse(text);
-        } catch (e) {
-            return res.status(500).json({
-                error: "AI returned invalid JSON",
-                raw: text
-            });
+        } catch (err) {
+            console.error("JSON PARSE FAILED:", err);
+            console.log("FALLBACK USED");
         }
 
+        // Save safely to DB
         const sql =
             "INSERT INTO results (aesthetic, score, description) VALUES (?, ?, ?)";
 
@@ -74,11 +99,18 @@ Give fashion analysis.
             parsed.description
         ]);
 
-        res.json(parsed);
+        return res.json(parsed);
 
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Analysis failed" });
+        console.error("ANALYSIS ERROR:", err);
+
+        return res.status(500).json({
+            aesthetic: "Error",
+            score: 0,
+            description: "Backend failure",
+            elements: [],
+            recommendations: []
+        });
     }
 });
 

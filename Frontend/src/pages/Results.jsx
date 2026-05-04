@@ -14,7 +14,13 @@ function Results() {
     };
 
     //  Get backend data safely
-    const data = location.state || {};
+    const data = location.state ?? {
+        aesthetic: "No result",
+        score: 0,
+        description: "No data received",
+        elements: [],
+        recommendations: []
+    };
 
     // Fallbacks (prevents crashes)
     const aesthetic = data.aesthetic || "No result";

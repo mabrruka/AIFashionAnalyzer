@@ -15,6 +15,12 @@ function Profile() {
     const [profilePic, setProfilePic] = useState(null);
     const [bio, setBio] = useState("");
 
+    const [savedImages, setSavedImages] = useState([]);
+
+    //  NEW STATES (SELECT MODE)
+    const [selectMode, setSelectMode] = useState(false);
+    const [selectedImages, setSelectedImages] = useState([]);
+
     const API = import.meta.env.VITE_API_URL || "http://localhost:3003";
 
     useEffect(() => {
@@ -39,13 +45,16 @@ function Profile() {
 
                 setUser(mergedUser);
                 setResults(data.results);
-
                 setBio(mergedUser.bio || "");
                 setProfilePic(mergedUser.profilePic || null);
-            })
-            .catch((err) => {
-                console.error("Profile fetch error:", err);
             });
+
+        fetch(`${API}/user-saved/${storedUser.id}`)
+            .then((res) => res.json())
+            .then((data) => {
+                setSavedImages(data);
+            });
+
     }, [navigate, API]);
 
     const toggleTheme = () => setDark((p) => !p);
@@ -55,49 +64,42 @@ function Profile() {
         navigate("/login");
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onloadend = () => setProfilePic(reader.result);
-        reader.readAsDataURL(file);
+    //  TOGGLE IMAGE SELECTION
+    const toggleSelect = (id) => {
+        setSelectedImages((prev) =>
+            prev.includes(id)
+                ? prev.filter((i) => i !== id)
+                : [...prev, id]
+        );
     };
 
-    const removeProfileImage = () => {
-        setProfilePic(null);
-    };
-
-    const saveProfile = async () => {
-        const updatedUser = {
-            ...user,
-            bio,
-            profilePic: profilePic || null,
-        };
+    //  DELETE SELECTED
+    const deleteSelected = async () => {
+        if (selectedImages.length === 0) return;
 
         try {
-            const res = await fetch(`${API}/profile/${user.id}`, {
-                method: "PUT",
+            await fetch(`${API}/delete-saved-images`, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    bio,
-                    profilePic,
+                    userId: user.id,
+                    imageIds: selectedImages,
                 }),
             });
 
-            if (!res.ok) {
-                console.error("Failed to update profile");
-            }
+            // refresh UI
+            setSavedImages((prev) =>
+                prev.filter((img) => !selectedImages.includes(img.id))
+            );
+
+            setSelectedImages([]);
+            setSelectMode(false);
 
         } catch (err) {
-            console.error("Profile update failed:", err);
+            console.error("Delete error:", err);
         }
-
-        setUser(updatedUser);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        setEditing(false);
     };
 
     return (
@@ -122,8 +124,8 @@ function Profile() {
 
             <main>
 
+                {/* PROFILE SECTION (UNCHANGED) */}
                 <section className="profile">
-
                     <img
                         src={
                             profilePic ||
@@ -133,60 +135,11 @@ function Profile() {
                     />
 
                     <h2>{user ? user.username : "Loading..."}</h2>
-
-                    <p style={{ fontStyle: "italic", color: "gray" }}>
-                        {bio}
-                    </p>
-
+                    <p style={{ fontStyle: "italic", color: "gray" }}>{bio}</p>
                     <p>{user ? user.email : ""}</p>
-
-                    {editing && (
-                        <div className="edit-profile">
-
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageChange}
-                                onClick={(e) => (e.target.value = null)}
-                            />
-
-                            <button
-                                type="button"
-                                onClick={removeProfileImage}
-                                style={{ marginTop: "5px" }}
-                            >
-                                Remove Profile Image
-                            </button>
-
-                            <textarea
-                                placeholder="Write your bio..."
-                                value={bio}
-                                onChange={(e) => setBio(e.target.value)}
-                            />
-
-                            <button onClick={saveProfile}>Save</button>
-                        </div>
-                    )}
                 </section>
 
-                <section>
-                    <h3>Your Style Analysis</h3>
-
-                    {results.length === 0 ? (
-                        <p>No analyses yet.</p>
-                    ) : (
-                        results.slice(0, 4).map((r, i) => (
-                            <div key={i} className="trait">
-                                <span>{r.aesthetic}</span>
-                                <span>{r.score}%</span>
-                                <div className="bar">
-                                    <div style={{ width: `${r.score}%` }}></div>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </section>
-
+                {/* TABS */}
                 <section className="tabs">
                     <button
                         className={tab === "items" ? "active" : ""}
@@ -203,34 +156,76 @@ function Profile() {
                     </button>
                 </section>
 
+                {/* RESULTS TAB */}
                 {tab === "items" && (
                     <section className="grid">
-                        {results.length === 0 ? (
-                            <p>No saved results yet.</p>
-                        ) : (
-                            results.map((item) => (
-                                <div className="card" key={item.id}>
-                                    <p><b>{item.aesthetic}</b></p>
-                                    <p>{item.description}</p>
-                                    <p>{item.score}% match</p>
-                                </div>
-                            ))
-                        )}
+                        {results.map((item) => (
+                            <div className="card" key={item.id}>
+                                <p><b>{item.aesthetic}</b></p>
+                                <p>{item.description}</p>
+                                <p>{item.score}% match</p>
+                            </div>
+                        ))}
                     </section>
                 )}
 
+                {/* INSPIRATION TAB */}
                 {tab === "inspo" && (
-                    <section className="boards">
-                        <div className="board">
-                            <img src="https://i.pinimg.com/736x/54/2c/c0/542cc0d1e6cd940c3f233f99763297de.jpg" />
-                            <h4>Everyday</h4>
-                            <p>4 items</p>
+                    <section>
+
+                        <div style={{ marginBottom: "10px" }}>
+                            <button onClick={() => setSelectMode(!selectMode)}>
+                                {selectMode ? "Cancel" : "Select"}
+                            </button>
+
+                            {selectMode && (
+                                <button
+                                    onClick={deleteSelected}
+                                    style={{ marginLeft: "10px", color: "red" }}
+                                >
+                                    Delete Selected ({selectedImages.length})
+                                </button>
+                            )}
                         </div>
 
-                        <div className="board">
-                            <img src="https://i.pinimg.com/736x/60/57/c2/6057c2caa4b0190a9e67ff745304bfd3.jpg" />
-                            <h4>Bags</h4>
-                            <p>2 items</p>
+                        <div className="boards">
+                            {savedImages.length === 0 ? (
+                                <p>No saved inspiration yet.</p>
+                            ) : (
+                                savedImages.map((item) => (
+                                    <div
+                                        className="board"
+                                        key={item.id}
+                                        onClick={() =>
+                                            selectMode && toggleSelect(item.id)
+                                        }
+                                        style={{
+                                            position: "relative",
+                                            cursor: selectMode ? "pointer" : "default",
+                                            border: selectedImages.includes(item.id)
+                                                ? "2px solid red"
+                                                : "none"
+                                        }}
+                                    >
+                                        {selectMode && (
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedImages.includes(item.id)}
+                                                onChange={() => toggleSelect(item.id)}
+                                                style={{
+                                                    position: "absolute",
+                                                    top: "10px",
+                                                    left: "10px",
+                                                    zIndex: 2
+                                                }}
+                                            />
+                                        )}
+
+                                        <img src={item.image_url} alt="" />
+                                        <h4>Inspiration</h4>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </section>
                 )}

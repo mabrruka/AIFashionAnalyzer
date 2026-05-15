@@ -17,13 +17,16 @@ function Profile() {
 
     const [savedImages, setSavedImages] = useState([]);
 
-    // SELECT MODE
+    // RESULT SELECT MODE
+    const [selectResultsMode, setSelectResultsMode] = useState(false);
+    const [selectedResults, setSelectedResults] = useState([]);
+
+    // IMAGE SELECT MODE
     const [selectMode, setSelectMode] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
 
     const API = import.meta.env.VITE_API_URL || "http://localhost:3003";
 
-    // DEFAULT PROFILE ICON
     const defaultProfile =
         "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
@@ -91,10 +94,8 @@ function Profile() {
 
             setUser(updatedUser);
 
-            // update local storage
             localStorage.setItem("user", JSON.stringify(updatedUser));
 
-            // close edit box
             setEditing(false);
 
         } catch (err) {
@@ -102,9 +103,45 @@ function Profile() {
         }
     };
 
-    // REMOVE PROFILE PHOTO
     const removePhoto = () => {
         setProfilePic("");
+    };
+
+    // TOGGLE RESULT SELECTION
+    const toggleResultSelect = (id) => {
+        setSelectedResults((prev) =>
+            prev.includes(id)
+                ? prev.filter((i) => i !== id)
+                : [...prev, id]
+        );
+    };
+
+    // DELETE SELECTED RESULTS
+    const deleteSelectedResults = async () => {
+        if (selectedResults.length === 0) return;
+
+        try {
+            await fetch(`${API}/delete-results`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    userId: user.id,
+                    resultIds: selectedResults,
+                }),
+            });
+
+            setResults((prev) =>
+                prev.filter((r) => !selectedResults.includes(r.id))
+            );
+
+            setSelectedResults([]);
+            setSelectResultsMode(false);
+
+        } catch (err) {
+            console.error("Delete results error:", err);
+        }
     };
 
     // TOGGLE IMAGE SELECTION
@@ -116,7 +153,7 @@ function Profile() {
         );
     };
 
-    // DELETE SELECTED
+    // DELETE SAVED IMAGES
     const deleteSelected = async () => {
         if (selectedImages.length === 0) return;
 
@@ -132,7 +169,6 @@ function Profile() {
                 }),
             });
 
-            // refresh UI
             setSavedImages((prev) =>
                 prev.filter((img) => !selectedImages.includes(img.id))
             );
@@ -164,12 +200,10 @@ function Profile() {
                     }}
                 >
 
-                    {/* EDIT PROFILE BUTTON */}
                     <button onClick={() => setEditing(!editing)}>
                         Edit Profile
                     </button>
 
-                    {/* SMALL EDIT BOX */}
                     {editing && (
                         <div
                             style={{
@@ -199,11 +233,6 @@ function Profile() {
                                     setProfilePic(e.target.value)
                                 }
                                 placeholder="Profile image URL"
-                                style={{
-                                    padding: "8px",
-                                    borderRadius: "8px",
-                                    border: "1px solid #ccc"
-                                }}
                             />
 
                             <textarea
@@ -213,20 +242,10 @@ function Profile() {
                                 }
                                 placeholder="Write your bio..."
                                 rows="3"
-                                style={{
-                                    padding: "8px",
-                                    borderRadius: "8px",
-                                    border: "1px solid #ccc",
-                                    resize: "none"
-                                }}
                             />
 
                             <button
                                 onClick={removePhoto}
-                                style={{
-                                    background: "#ddd",
-                                    color: "#333"
-                                }}
                             >
                                 Remove Profile Photo
                             </button>
@@ -257,7 +276,6 @@ function Profile() {
 
             <main>
 
-                {/* PROFILE SECTION */}
                 <section className="profile">
                     <img
                         src={profilePic || defaultProfile}
@@ -278,7 +296,6 @@ function Profile() {
                     <p>{user ? user.email : ""}</p>
                 </section>
 
-                {/* TABS */}
                 <section className="tabs">
                     <button
                         className={tab === "items" ? "active" : ""}
@@ -297,18 +314,78 @@ function Profile() {
 
                 {/* RESULTS TAB */}
                 {tab === "items" && (
-                    <section className="grid">
-                        {results.map((item) => (
-                            <div className="card" key={item.id}>
-                                <p>
-                                    <b>{item.aesthetic}</b>
-                                </p>
+                    <section>
 
-                                <p>{item.description}</p>
+                        <div style={{ marginBottom: "10px" }}>
+                            <button
+                                onClick={() =>
+                                    setSelectResultsMode(!selectResultsMode)
+                                }
+                            >
+                                {selectResultsMode ? "Cancel" : "Select"}
+                            </button>
 
-                                <p>{item.score}% match</p>
-                            </div>
-                        ))}
+                            {selectResultsMode && (
+                                <button
+                                    onClick={deleteSelectedResults}
+                                    style={{
+                                        marginLeft: "10px",
+                                        color: "red"
+                                    }}
+                                >
+                                    Delete Selected (
+                                    {selectedResults.length})
+                                </button>
+                            )}
+                        </div>
+
+                        <section className="grid">
+                            {results.map((item) => (
+                                <div
+                                    className="card"
+                                    key={item.id}
+                                    onClick={() =>
+                                        selectResultsMode &&
+                                        toggleResultSelect(item.id)
+                                    }
+                                    style={{
+                                        position: "relative",
+                                        cursor: selectResultsMode
+                                            ? "pointer"
+                                            : "default",
+                                        border:
+                                            selectedResults.includes(item.id)
+                                                ? "2px solid red"
+                                                : "none"
+                                    }}
+                                >
+
+                                    {selectResultsMode && (
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedResults.includes(item.id)}
+                                            onChange={() =>
+                                                toggleResultSelect(item.id)
+                                            }
+                                            style={{
+                                                position: "absolute",
+                                                top: "10px",
+                                                left: "10px",
+                                                zIndex: 2
+                                            }}
+                                        />
+                                    )}
+
+                                    <p>
+                                        <b>{item.aesthetic}</b>
+                                    </p>
+
+                                    <p>{item.description}</p>
+
+                                    <p>{item.score}% match</p>
+                                </div>
+                            ))}
+                        </section>
                     </section>
                 )}
 

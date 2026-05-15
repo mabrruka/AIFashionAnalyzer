@@ -28,6 +28,35 @@ function Results() {
     const elements = data.elements ?? [];
     const recommendations = data.recommendations ?? [];
 
+    // ✅ ADDED: SAVE RESULT FUNCTION
+    const saveResult = async () => {
+        try {
+            const user = JSON.parse(localStorage.getItem("user"));
+
+            if (!user) {
+                navigate("/login");
+                return;
+            }
+
+            await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3003"}/save-result`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    userId: user.id,
+                    aesthetic,
+                    score,
+                    description
+                }),
+            });
+
+            alert("Result saved!");
+        } catch (err) {
+            console.error("Save result error:", err);
+        }
+    };
+
     return (
         <div className="page">
 
@@ -44,6 +73,11 @@ function Results() {
 
                         <button onClick={() => navigate("/dashboard")}>
                             ↩
+                        </button>
+
+                        {/* ✅ ADDED BUTTON */}
+                        <button onClick={saveResult}>
+                            Save this result
                         </button>
                     </div>
 

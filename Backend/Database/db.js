@@ -16,14 +16,14 @@ const pool = mysql.createPool({
     try {
         const conn = await pool.getConnection();
 
-        console.log("✅ Connected to MySQL");
+        console.log(" Connected to MySQL");
 
         if (conn) {
             conn.release();
         }
 
     } catch (err) {
-        console.log("❌ MySQL not ready:", err.message);
+        console.log(" MySQL not ready:", err.message);
 
         setTimeout(testConnection, 3000);
     }

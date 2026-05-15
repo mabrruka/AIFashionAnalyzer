@@ -13,7 +13,6 @@ function Results() {
         setDark(!dark);
     };
 
-    //  Get backend data safely
     const data = location.state ?? {
         aesthetic: "No result",
         score: 0,
@@ -22,12 +21,10 @@ function Results() {
         recommendations: []
     };
 
-    // Fallbacks (prevents crashes)
     const aesthetic = data.aesthetic || "No result";
     const score = data.score || 0;
     const description = data.description || "Upload images to analyze your style.";
 
-    // dynamic suggestions (fake for now)
     const elements = data.elements ?? [];
     const recommendations = data.recommendations ?? [];
 

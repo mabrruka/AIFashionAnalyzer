@@ -73,7 +73,6 @@ Give a detailed fashion analysis.
 
         console.log("AI TEXT:", text);
 
-        // ✅ SAFE DEFAULT (prevents undefined crash)
         let parsed = {
             aesthetic: "Unknown",
             score: 0,

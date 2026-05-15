@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 app.use("/", require("./routes/authRoutes"));
 app.use("/", require("./routes/profileRoutes"));
 app.use("/", require("./routes/analysisRoutes"));
-app.use("/", require("./routes/saveRoutes")); // ✅ CORRECT
+app.use("/", require("./routes/saveRoutes"));
 
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);

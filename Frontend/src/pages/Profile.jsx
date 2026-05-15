@@ -12,16 +12,20 @@ function Profile() {
     const [results, setResults] = useState([]);
 
     const [editing, setEditing] = useState(false);
-    const [profilePic, setProfilePic] = useState(null);
+    const [profilePic, setProfilePic] = useState("");
     const [bio, setBio] = useState("");
 
     const [savedImages, setSavedImages] = useState([]);
 
-    //  NEW STATES (SELECT MODE)
+    // SELECT MODE
     const [selectMode, setSelectMode] = useState(false);
     const [selectedImages, setSelectedImages] = useState([]);
 
     const API = import.meta.env.VITE_API_URL || "http://localhost:3003";
+
+    // DEFAULT PROFILE ICON
+    const defaultProfile =
+        "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -33,7 +37,7 @@ function Profile() {
 
         setUser(storedUser);
         setBio(storedUser.bio || "");
-        setProfilePic(storedUser.profilePic || null);
+        setProfilePic(storedUser.profilePic || "");
 
         fetch(`${API}/profile/${storedUser.id}`)
             .then((res) => res.json())
@@ -46,7 +50,7 @@ function Profile() {
                 setUser(mergedUser);
                 setResults(data.results);
                 setBio(mergedUser.bio || "");
-                setProfilePic(mergedUser.profilePic || null);
+                setProfilePic(mergedUser.profilePic || "");
             });
 
         fetch(`${API}/user-saved/${storedUser.id}`)
@@ -64,7 +68,46 @@ function Profile() {
         navigate("/login");
     };
 
-    //  TOGGLE IMAGE SELECTION
+    // SAVE PROFILE
+    const saveProfile = async () => {
+        try {
+            await fetch(`${API}/update-profile`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    userId: user.id,
+                    bio,
+                    profilePic,
+                }),
+            });
+
+            const updatedUser = {
+                ...user,
+                bio,
+                profilePic,
+            };
+
+            setUser(updatedUser);
+
+            // update local storage
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+
+            // close edit box
+            setEditing(false);
+
+        } catch (err) {
+            console.error("Profile update error:", err);
+        }
+    };
+
+    // REMOVE PROFILE PHOTO
+    const removePhoto = () => {
+        setProfilePic("");
+    };
+
+    // TOGGLE IMAGE SELECTION
     const toggleSelect = (id) => {
         setSelectedImages((prev) =>
             prev.includes(id)
@@ -73,7 +116,7 @@ function Profile() {
         );
     };
 
-    //  DELETE SELECTED
+    // DELETE SELECTED
     const deleteSelected = async () => {
         if (selectedImages.length === 0) return;
 
@@ -112,10 +155,100 @@ function Profile() {
 
                 <h1>Wrapped</h1>
 
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                    <button onClick={() => setEditing(true)}>
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "10px",
+                        alignItems: "center",
+                        position: "relative"
+                    }}
+                >
+
+                    {/* EDIT PROFILE BUTTON */}
+                    <button onClick={() => setEditing(!editing)}>
                         Edit Profile
                     </button>
+
+                    {/* SMALL EDIT BOX */}
+                    {editing && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: "45px",
+                                right: "0",
+                                background: dark ? "#222" : "white",
+                                border: "1px solid #ccc",
+                                borderRadius: "12px",
+                                padding: "15px",
+                                width: "260px",
+                                zIndex: 100,
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "10px"
+                            }}
+                        >
+                            <h4 style={{ margin: 0 }}>
+                                Edit Profile
+                            </h4>
+
+                            <input
+                                type="text"
+                                value={profilePic}
+                                onChange={(e) =>
+                                    setProfilePic(e.target.value)
+                                }
+                                placeholder="Profile image URL"
+                                style={{
+                                    padding: "8px",
+                                    borderRadius: "8px",
+                                    border: "1px solid #ccc"
+                                }}
+                            />
+
+                            <textarea
+                                value={bio}
+                                onChange={(e) =>
+                                    setBio(e.target.value)
+                                }
+                                placeholder="Write your bio..."
+                                rows="3"
+                                style={{
+                                    padding: "8px",
+                                    borderRadius: "8px",
+                                    border: "1px solid #ccc",
+                                    resize: "none"
+                                }}
+                            />
+
+                            <button
+                                onClick={removePhoto}
+                                style={{
+                                    background: "#ddd",
+                                    color: "#333"
+                                }}
+                            >
+                                Remove Profile Photo
+                            </button>
+
+                            <div
+                                style={{
+                                    display: "flex",
+                                    gap: "8px"
+                                }}
+                            >
+                                <button onClick={saveProfile}>
+                                    Save
+                                </button>
+
+                                <button
+                                    onClick={() => setEditing(false)}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     <button onClick={toggleTheme}>🌓</button>
                     <button onClick={logout}>🚪</button>
@@ -124,18 +257,24 @@ function Profile() {
 
             <main>
 
-                {/* PROFILE SECTION (UNCHANGED) */}
+                {/* PROFILE SECTION */}
                 <section className="profile">
                     <img
-                        src={
-                            profilePic ||
-                            "https://i.pinimg.com/736x/1d/ec/e2/1dece2c8357bdd7cee3b15036344faf5.jpg"
-                        }
+                        src={profilePic || defaultProfile}
                         alt="profile"
                     />
 
                     <h2>{user ? user.username : "Loading..."}</h2>
-                    <p style={{ fontStyle: "italic", color: "gray" }}>{bio}</p>
+
+                    <p
+                        style={{
+                            fontStyle: "italic",
+                            color: "gray"
+                        }}
+                    >
+                        {bio}
+                    </p>
+
                     <p>{user ? user.email : ""}</p>
                 </section>
 
@@ -161,8 +300,12 @@ function Profile() {
                     <section className="grid">
                         {results.map((item) => (
                             <div className="card" key={item.id}>
-                                <p><b>{item.aesthetic}</b></p>
+                                <p>
+                                    <b>{item.aesthetic}</b>
+                                </p>
+
                                 <p>{item.description}</p>
+
                                 <p>{item.score}% match</p>
                             </div>
                         ))}
@@ -174,16 +317,24 @@ function Profile() {
                     <section>
 
                         <div style={{ marginBottom: "10px" }}>
-                            <button onClick={() => setSelectMode(!selectMode)}>
+                            <button
+                                onClick={() =>
+                                    setSelectMode(!selectMode)
+                                }
+                            >
                                 {selectMode ? "Cancel" : "Select"}
                             </button>
 
                             {selectMode && (
                                 <button
                                     onClick={deleteSelected}
-                                    style={{ marginLeft: "10px", color: "red" }}
+                                    style={{
+                                        marginLeft: "10px",
+                                        color: "red"
+                                    }}
                                 >
-                                    Delete Selected ({selectedImages.length})
+                                    Delete Selected (
+                                    {selectedImages.length})
                                 </button>
                             )}
                         </div>
@@ -197,21 +348,31 @@ function Profile() {
                                         className="board"
                                         key={item.id}
                                         onClick={() =>
-                                            selectMode && toggleSelect(item.id)
+                                            selectMode &&
+                                            toggleSelect(item.id)
                                         }
                                         style={{
                                             position: "relative",
-                                            cursor: selectMode ? "pointer" : "default",
-                                            border: selectedImages.includes(item.id)
-                                                ? "2px solid red"
-                                                : "none"
+                                            cursor: selectMode
+                                                ? "pointer"
+                                                : "default",
+                                            border:
+                                                selectedImages.includes(
+                                                    item.id
+                                                )
+                                                    ? "2px solid red"
+                                                    : "none"
                                         }}
                                     >
                                         {selectMode && (
                                             <input
                                                 type="checkbox"
-                                                checked={selectedImages.includes(item.id)}
-                                                onChange={() => toggleSelect(item.id)}
+                                                checked={selectedImages.includes(
+                                                    item.id
+                                                )}
+                                                onChange={() =>
+                                                    toggleSelect(item.id)
+                                                }
                                                 style={{
                                                     position: "absolute",
                                                     top: "10px",
@@ -221,7 +382,11 @@ function Profile() {
                                             />
                                         )}
 
-                                        <img src={item.image_url} alt="" />
+                                        <img
+                                            src={item.image_url}
+                                            alt=""
+                                        />
+
                                         <h4>Inspiration</h4>
                                     </div>
                                 ))

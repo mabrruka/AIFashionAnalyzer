@@ -71,6 +71,17 @@ function Profile() {
         navigate("/login");
     };
 
+    // HANDLE IMAGE UPLOAD FROM DESKTOP
+    const handleProfileUpload = (e) => {
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        const imageUrl = URL.createObjectURL(file);
+
+        setProfilePic(imageUrl);
+    };
+
     // SAVE PROFILE
     const saveProfile = async () => {
         try {
@@ -226,13 +237,11 @@ function Profile() {
                                 Edit Profile
                             </h4>
 
+                            {/* DESKTOP FILE UPLOAD */}
                             <input
-                                type="text"
-                                value={profilePic}
-                                onChange={(e) =>
-                                    setProfilePic(e.target.value)
-                                }
-                                placeholder="Profile image URL"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleProfileUpload}
                             />
 
                             <textarea
@@ -269,8 +278,9 @@ function Profile() {
                         </div>
                     )}
 
+
+                    <button onClick={logout}>Logout</button>
                     <button onClick={toggleTheme}>🌓</button>
-                    <button onClick={logout}>🚪</button>
                 </div>
             </header>
 

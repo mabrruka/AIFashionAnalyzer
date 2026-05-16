@@ -40,7 +40,7 @@ INPUT:
 
 Return ONLY valid JSON:
 {
-  "aesthetic": one of ["Minimalist Streetwear", "Clean Girl", "Y2K", "Dark Academia", "Techwear", "Old Money", "Athleisure"],
+  "aesthetic": one of ["Minimalist Streetwear", "Clean Girl", "Old Money", "Simple", "Neutral"],
   "score": number,
   "description": string,
   "elements": string[],

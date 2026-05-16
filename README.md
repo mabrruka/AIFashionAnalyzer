@@ -112,7 +112,7 @@ Accessing the Application
 |--------|----------|------------|
 | GET | `/profile/:id` | Get user profile and analysis history |
 | PUT | `/profile/:id` | Update user profile |
-| POST | `delete-results` | Deletes reults |
+| POST | `/delete-results` | Deletes reults |
 ---
 
 ## Team Members

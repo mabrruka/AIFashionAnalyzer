@@ -82,7 +82,41 @@ Accessing the Application
 - **Parameterized Queries** – Prevents SQL injection  
 
 ---
-
+## Code Sturcture 
+```bash
+AIFashionAnalyzer/
+│
+├── backend/
+│   ├── Database/
+│   │   └── db.js
+│   │
+│   ├── routes/
+│   │   ├── analysisRoutes.js
+│   │   ├── authRoutes.js
+│   │   ├── profileRoutes.js
+│   │   └── saveRoutes.js
+│   │
+│   ├── Dockerfile
+│   └── server.js
+│
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   ├── main.jsx
+│   │   │
+│   │   └── pages/
+│   │       ├── Auth.jsx / Auth.css
+│   │       ├── Dashboard.jsx / Dashboard.css
+│   │       ├── Onboarding.jsx / Onboarding.css
+│   │       ├── Profile.jsx / Profile.css
+│   │       ├── Results.jsx / Results.css
+│   │       └── Upload.jsx / Upload.css
+│   │
+│   └── Dockerfile
+│
+└── docker-compose.yml
+```
 ## Database Schema
 
 - **users** – Stores user account information and credentials  

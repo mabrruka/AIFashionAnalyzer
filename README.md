@@ -82,7 +82,7 @@ Accessing the Application
 - **Parameterized Queries** – Prevents SQL injection  
 
 ---
-## Code Sturcture 
+## Code Sturcture  
 ```bash
 AIFashionAnalyzer/
 │

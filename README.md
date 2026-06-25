@@ -149,9 +149,3 @@ AIFashionAnalyzer/
 | POST | `/delete-results` | Deletes reults |
 ---
 
-## Team Members
-
-| Name | Role |
-|------|------|
-| Mabruka Taher Elmasri | Frontend / Backend Development |
-| Noon Aamir Elagail | Documentation / Testing |
